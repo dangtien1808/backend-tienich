@@ -7,11 +7,11 @@ require_once "config.php";
 spl_autoload_register(function ($name) {
 
     //
-    if(is_file(PROJECT_PATH . "/" . "models/$name.php")) 
-    	include_once PROJECT_PATH . "/" . "models/$name.php";
+    if(is_file(PROJECT_PATH . "/" . "model/$name.php")) 
+    	include_once PROJECT_PATH . "/" . "model/$name.php";
     
-    if(is_file(PROJECT_PATH . "/" . "libs/$name.php")) 
-    	include_once PROJECT_PATH . "/" . "libs/$name.php";
+    if(is_file(PROJECT_PATH . "/" . "library/$name.php")) 
+    	include_once PROJECT_PATH . "/" . "library/$name.php";
 
     if(is_file(PROJECT_PATH . "/" . "controllers/$name.php")) 
     	include_once PROJECT_PATH . "/" . "controllers/$name.php";
@@ -31,7 +31,9 @@ $action     = isset($_GET["action"]) ? $_GET["action"] : NULL;
 // }
 
 try {
-    $page = new $controller($action);
+    if(isset($controller) && isset($action)) {
+        $page = new $controller( $controller, $action);
+    }
 } catch (Exception $e) {
 	echo "<pre>";
 	echo 'Caught Exception',  $e, "\n";

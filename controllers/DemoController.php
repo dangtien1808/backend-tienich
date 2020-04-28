@@ -2,7 +2,7 @@
 class  DemoController extends BaseController
 {
     public $model;
-    function __construct ($action)
+    function __construct ($control, $action)
     {
         // Tải thư viện
         $this->logger = new Logger();
@@ -12,7 +12,7 @@ class  DemoController extends BaseController
         $this->model = new Model();
 
         // Thực hiện action
-        parent::__construct($action);
+        parent::__construct($control, $action);
     }
 
     function index()

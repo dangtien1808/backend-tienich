@@ -8,7 +8,7 @@
 define('DB_SERVERNAME', "localhost"); //
 define('DB_USERNAME', "root");
 define('DB_PASSWORD', "");
-define('DB_NAME', "demo");
+define('DB_NAME', "tienich");
 
 define('BASE_URL',"");
 define('PROJECT_PATH',dirname(__FILE__));
