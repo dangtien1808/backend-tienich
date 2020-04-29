@@ -2,24 +2,34 @@
 class Database
 {
 
-    private static $instance = NULL;
-    public static function getInstance() {
-      if (!isset(self::$instance)) {
+  private $serveName;
+  private $name;
+  private $userName;
+  private $password;
+
+  private $conn = NULL;
+
+    function __construct($serveName = DB_SERVERNAME,$name = DB_NAME,$userName = DB_USERNAME,$password = DB_PASSWORD)
+    {
+      $this->serveName  = $serveName;
+      $this->name       = $name;
+      $this->userName   = $userName;
+      $this->password   = $password;   
+      $this->getConnect();
+    }
+
+    public function getConnect() {
+      if (!isset($this->conn)) {
         try {
-          self::$instance = new PDO('mysql:host='.DB_SERVERNAME.';dbname='
-          .DB_NAME, DB_USERNAME, DB_PASSWORD);
-          self::$instance->exec("SET NAMES 'utf8'");
+          $this->conn = new PDO('mysql:host='. $this->serveName.';dbname='.$this->name, $this->userName, $this->password);
+          $this->conn->exec("SET NAMES 'utf8'");
          
         } catch (PDOException $ex) {
           die($ex->getMessage());
         }
       }
-      return self::$instance;
     }
      
-  // New features
-  // 2020/01/04
-  // API for execute sql command
   
     /**
      * [Executes a prepared statement]
@@ -27,8 +37,8 @@ class Database
      * @param  array  $parameter [description]
      * @return [PDOstatement]   [ statement or result of execute TRUE on success or FALSE on failure. ]
      */
-     static function execute($sql,$parameter=array()){
-      $stm  = self::getInstance()->prepare($sql);
+     function execute($sql,$parameter=array()){
+      $stm  = $this->conn->prepare($sql);
       $stm->execute($parameter);
       
       return $stm; 
@@ -39,8 +49,8 @@ class Database
    * @param  $parameter parameter array for PDO->execute()
    * @return PDO->fetchAll()
    */
-     static function fetchAll($sql,$parameter=array()){
-      return self::execute($sql,$parameter)->fetchAll(PDO::FETCH_ASSOC);
+     function fetchAll($sql,$parameter=array()){
+      return $this->execute($sql,$parameter)->fetchAll(PDO::FETCH_ASSOC);
     }
   
   /** [Execute sql command and fetch data ( record ) ]
@@ -48,7 +58,7 @@ class Database
    * @param  $parameter parameter array for PDO->execute()
    * @return PDO->fetch()
    */
-     static function fetch($sql,$parameter=array()){
-      return self::execute($sql,$parameter)->fetch();
+     function fetch($sql,$parameter=array()){
+      return $this->execute($sql,$parameter)->fetch();
     }
 }

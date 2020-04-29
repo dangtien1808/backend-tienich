@@ -1,5 +1,5 @@
 <?php
-class ManageLogs extends Model
+class ManageLogsModel extends Model
 {
     function __construct ()
     {

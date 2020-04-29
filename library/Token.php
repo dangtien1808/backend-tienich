@@ -2,96 +2,112 @@
 
 class Token
 {
-    /** @var string */
-    protected $alphabet;
 
-    /** @var int */
-    protected $alphabetLength;
+    protected $algos = [
+        'HS256' => 'sha256',
+        'HS384' => 'sha384',
+        'HS512' => 'sha512',
+        'RS256' => \OPENSSL_ALGO_SHA256,
+        'RS384' => \OPENSSL_ALGO_SHA384,
+        'RS512' => \OPENSSL_ALGO_SHA512,
+    ];
 
+    protected $key = KEY_TOKEN;
+    protected $algo = ALGO_TOKEN;
+    protected $maxAge = MAX_AGE_TOKEN;
+    public function __construct() {
+    }
 
-    /**
-     * @param string $alphabet
-     */
-    public function __construct($alphabet = '')
+    public function encode(array $payload, array $header = []): string
     {
-        if ('' !== $alphabet) {
-            $this->setAlphabet($alphabet);
-        } else {
-            $this->setAlphabet(
-                  implode(range('a', 'z'))
-                . implode(range('A', 'Z'))
-                . implode(range(0, 9))
-            );
+        $header = ['typ' => 'JWT', 'alg' => $this->algo] + $header;
+
+        if (!isset($payload['exp'])) {
+            $payload['exp'] = time() + $this->maxAge;
         }
+        $header    = $this->urlSafeEncode($header);
+        $payload  = $this->urlSafeEncode($payload);
+        $signature = $this->urlSafeEncode($this->sign($header . '.' . $payload));
+        return $header . '.' . substr(base64_encode(SALT_TOKEN), 0, 10) . $payload . '.' . $signature;
+
     }
 
-    /**
-     * @param string $alphabet
-     */
-    public function setAlphabet($alphabet)
+    public function decode(string $token): array
     {
-        $this->alphabet = $alphabet;
-        $this->alphabetLength = strlen($alphabet);
+        if (substr_count($token, '.') < 2) {
+            return array();
+        }
+
+        $token = explode('.', $token, 3);
+        $salt = substr(base64_encode(SALT_TOKEN), 0, 10);
+
+        $token[1] = substr($token[1], strlen($salt));
+
+        if (!$this->verify($token[0] . '.' . $token[1], $token[2])) {
+            return array();
+        }
+
+        $payload = (array) $this->urlSafeDecode($token[1]);
+        ///////////
+        // check time token
+        //////////
+        return $payload;
+    }
+    protected function sign(string $input): string
+    {
+        // HMAC SHA.
+        if (substr($this->algo, 0, 2) === 'HS') {
+            return hash_hmac($this->algos[$this->algo], $input, $this->key, true);
+        }
+
+        openssl_sign($input, $signature, $this->key, $this->algos[$this->algo]);
+
+        return $signature;
     }
 
-    /**
-     * @param int $length
-     * @return string
-     */
-    public function generate($length)
+    protected function verify(string $input, string $signature): bool
     {
+        $algo = $this->algos[$this->algo];
+
+        // HMAC SHA.
+        if (substr($this->algo, 0, 2) === 'HS') {
+            return hash_equals($this->urlSafeEncode(hash_hmac($algo, $input, $this->key, true)), $signature);
+        }
+
+        $pubKey = openssl_pkey_get_details($this->key)['key'];
+
+        return openssl_verify($input, $this->urlSafeDecode($signature, false), $pubKey, $algo) === 1;
+    }
+
+    protected function urlSafeEncode($data): string
+    {
+        if (is_array($data)) {
+            $data = json_encode($data, JSON_UNESCAPED_SLASHES);
+        }
+
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+
+    protected function urlSafeDecode($data, bool $asJson = true)
+    {
+        if (!$asJson) {
+            return base64_decode(strtr($data, '-_', '+/'));
+        }
+
+        $data = json_decode(base64_decode(strtr($data, '-_', '+/')));
+        return $data;
+    }
+
+    public function tokenRandom() {
         $token = '';
-
-        for ($i = 0; $i < $length; $i++) {
-            $randomKey = $this->getRandomInteger(0, $this->alphabetLength);
-            $token .= $this->alphabet[$randomKey];
+        $strlen = random_int(3,5);
+        for ($i = 0; $i < $strlen; $i++) {
+            $strRandom = random_bytes(20);
+            $token .= rtrim(strtr(base64_encode($strRandom), '+/', '-_'), '=');
+            if($i < $strlen - 1) {
+                $token.= ".";
+            }
         }
-
         return $token;
     }
-
-    /**
-     * @param int $min
-     * @param int $max
-     * @return int
-     */
-    protected function getRandomInteger($min, $max)
-    {
-        $range = ($max - $min);
-
-        if ($range < 0) {
-            // Not so random...
-            return $min;
-        }
-
-        $log = log($range, 2);
-
-        // Length in bytes.
-        $bytes = (int) ($log / 8) + 1;
-
-        // Length in bits.
-        $bits = (int) $log + 1;
-
-        // Set all lower bits to 1.
-        $filter = (int) (1 << $bits) - 1;
-
-        do {
-            $rnd = hexdec(bin2hex(openssl_random_pseudo_bytes($bytes)));
-
-            // Discard irrelevant bits.
-            $rnd = $rnd & $filter;
-
-        } while ($rnd >= $range);
-
-        return ($min + $rnd);
-    }
 }
-
-// // Create new instance of generator class.
-// $generator = new RandomStringGenerator;
-
-// // Set token length.
-// $tokenLength = 32;
-
-// // Call method to generate random string.
-// $token = $generator->generate($tokenLength);

@@ -2,23 +2,23 @@
 class Model
 {
     protected $tblName;
-    protected $DB;
+    protected $db;
     function __construct ($tblName)
     {
         $this->tblName = $tblName;
-        $this->DB = new DataBase();
+        $this->db = new DataBase();
     }
     function fetchAll()
     {
         $sql = "select * FROM {$this->tblName}";
-        $result = $this->DB->fetchAll($sql);
+        $result = $this->db->fetchAll($sql);
         return $result;
     }
 
     function fetchId($id)
     {
         $sql = "select * FROM ". $this->tblName . " where id = :id";
-        $result = $this->DB->fetch($sql, array("id" => $id));
+        $result = $this->db->fetch($sql, array("id" => $id));
         return $result;
     }
     function fetch($data)
@@ -28,7 +28,7 @@ class Model
             array_push($lstParams,  $key . " = '" . $val . "' ");
         }
         $sql = "select * FROM ". $this->tblName . " where " . join( "and ", $lstParams);
-        $result = $this->DB->fetch($sql);
+        $result = $this->db->fetch($sql);
         return $result;
     }
 }

@@ -17,7 +17,6 @@ class  DemoController extends BaseController
 
     function index()
     {
-        //
         $result = $this->model->findAll();
         echo 'tra ve json '.json_encode($result)."<br>";
 

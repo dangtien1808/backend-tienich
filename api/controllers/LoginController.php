@@ -9,17 +9,26 @@ class  LoginController extends BaseController
 
     function index()
     {
-        if(isset($_POST["email"]) && isset($_POST["password"])) {
-            $email = $_POST["email"];
-            $password = $_POST["password"];
-            $model = new Manage;
+        $email = $this->dataFormat->postIndex("email");
+        $password = $this->dataFormat->postIndex("password");
+        $token = $this->dataFormat->postIndex("auth_token");
+
+        // if($this->checkLogin($token)) {
+        //     echo "not login";die;
+        // }
+
+        if(isset($email) && isset($password)) {
+            $model = $this->model("Manage");
             $dataInput = array(
-                "email" => $_POST["email"],
-                "password" => $_POST["password"],
+                "email" => $email,
+                "password" => $password,
             );
             $info = $model->fetch($dataInput);
-            if(!is_null($info)) {
-                Logger::writeLog('manage_logs', array(
+            if($info) {
+                $token = $this->token->tokenRandom();
+                $this->session->setSession('auth_token', $token);        
+                $this->session->setSession('auth_info', $info);
+                Logger::writeLog("manage_logs", array(
                     "manage_id" => $info["id"],
                     "create" => $info["create"],
                     "menu_control" => $this->control,
@@ -36,16 +45,6 @@ class  LoginController extends BaseController
             
             echo json_encode($result);
         }
-        // $model = new Manage;
-        // $result = $model->fetchAll();
-        // echo json_encode($result);
-        // echo "<br/>";
-        // $result1 = $model->fetchId(1);
-        // echo json_encode($result1);
-
-        // $generator = new Token;
-        // $token = $generator->generate(32);
-        // echo $token;
     }
 }
 ?>

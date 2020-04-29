@@ -20,7 +20,6 @@ spl_autoload_register(function ($name) {
 // Lấy controller và action
 $controller = isset($_GET["controller"]) ? $_GET["controller"] : NULL;
 $action     = isset($_GET["action"]) ? $_GET["action"] : NULL;
-
 // Xác thực tài khoản
 // $account = new Login();
 // $authenticated = $account->authenticate($action);

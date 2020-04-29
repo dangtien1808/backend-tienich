@@ -7,11 +7,13 @@ spl_autoload_register(function ($name) {
     	include_once PROJECT_PATH . "/" . "model/$name.php";
     
     if(is_file(PROJECT_PATH . "/" . "library/$name.php")) 
-    	include_once PROJECT_PATH . "/" . "library/$name.php";
-
+        include_once PROJECT_PATH . "/" . "library/$name.php";
+        
     if(is_file(PROJECT_PATH . "/api/controllers/$name.php")) 
     	include_once PROJECT_PATH . "/api/controllers/$name.php";
-
+        
+    if(is_file(PROJECT_PATH . "/" . "table/$name.php")) 
+    	include_once PROJECT_PATH . "/" . "table/$name.php";
 });
 
 $control = null;
