@@ -2,10 +2,10 @@
 
 class Session
 {
-    public function setSession($key, $val) {
+    public function setSession($key, $val, $time = null) {
         $_SESSION[$key] = array(
             $key => $val,
-            "timeLast" => time()
+            "timeLast" => !is_null($time) ? $time : time()
         );
     }
     public function getSession($key){
@@ -26,6 +26,5 @@ class Session
         unset($_SESSION[$key]);
         return false;
     }
-
-
 }
+?>
